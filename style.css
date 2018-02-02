@@ -1,0 +1,131 @@
+body, html{
+	margin:0px;
+	padding:0px;
+	background-color:#227f40;
+}
+
+#head, .bodyPart{
+	width: 10px;
+	height: 10px;
+	position: absolute;
+}
+
+#head{
+	left: 50px;
+	top: 50px;
+}
+
+.food{
+	width: 10px;
+	height: 10px;
+	position: absolute;
+}
+
+.logo, .snekContainer{
+	margin: auto;
+	display: block;
+}
+
+.snekContainer{
+	width: 800px;
+	height: 400px;
+	position: relative;
+	overflow:hidden;
+}
+
+.score{
+	width: 800px;
+	display:block;
+	text-align:center;
+	font-family:Verdana;
+	font-size:20px;
+}
+
+#light{
+	position: absolute;
+	left:5px;
+	top:5px;
+	cursor:pointer;
+}
+
+.dark{
+	background-color:#000;
+	border: 2px solid #FFF;
+}
+
+.dark > #light{
+	color: #FFF;
+}
+
+.dark > #head{
+	background-color:#ffffff;
+}
+
+.dark > .bodyPart{
+	background-color:#fff;
+}
+
+.dark > .food{
+	background-color: #00ff44;
+	border: 1px dotted white;
+}
+
+.dark > .score{
+	color: #FFF;
+}
+
+.light{
+	background-color: #ececec;
+	border: 2px solid #000;
+}
+
+.light > #light{
+	color: #000;
+}
+
+.light > #head{
+	background-color:#000000;
+}
+
+.light > .bodyPart{
+	background-color:#000;
+}
+
+.light > .food{
+	background-color: #227f40;
+	border: 1px dotted black;
+}
+
+.light > .score{
+	color: #000;
+}
+
+/*
+messed up
+*/
+
+.messed-up{
+	background-color: #ec00d2;
+	border: 2px solid #2800ff;
+}
+
+.messed-up > #light{
+	color: #dfdfe0;
+}
+
+.messed-up > #head{
+	background-color: #d4b030;
+}
+
+.messed-up > .bodyPart{
+	background-color: #20ff00;
+}
+
+.messed-up > .food{
+	background-color: #2800ff;
+	border: 1px dotted black;
+}
+
+.messed-up > .score{
+	color: #000;
+}
