@@ -37,9 +37,54 @@ $(document).keydown(function (e) {
 });
 
 /**
+ * Mobile buttons
+ */
+
+// Up
+$(document).on('touchstart', '.fa-chevron-up', function(event){
+    if(event.handled === false) return;
+    event.stopPropagation();
+    event.preventDefault();
+    event.handled = true;
+
+    if(direction !== 'D') direction = 'U';
+});
+
+// Left
+$(document).on('touchstart', '.fa-chevron-left', function(event){
+    if(event.handled === false) return;
+    event.stopPropagation();
+    event.preventDefault();
+    event.handled = true;
+
+    if(direction !== 'R') direction = 'L';
+});
+
+// Right
+$(document).on('touchstart', '.fa-chevron-right', function(event){
+    if(event.handled === false) return;
+    event.stopPropagation();
+    event.preventDefault();
+    event.handled = true;
+
+    if(direction !== 'L') direction = 'R';
+});
+
+// Down
+$(document).on('touchstart', '.fa-chevron-down', function(event){
+    if(event.handled === false) return;
+    event.stopPropagation();
+    event.preventDefault();
+    event.handled = true;
+
+    if(direction !== 'U') direction = 'D';
+});
+/**
  * General init function
  */
 function init() {
+
+
 	$container = $('.snekContainer');
 
 	$container.append('<div class="food"></div>');

@@ -2,6 +2,8 @@ body, html{
 	margin:0px;
 	padding:0px;
 	background-color:#227f40;
+	width: 100%;
+	height: 100%;
 }
 
 #head, .bodyPart{
@@ -27,7 +29,7 @@ body, html{
 }
 
 .snekContainer{
-	width: 800px;
+	width: 700px;
 	height: 400px;
 	position: relative;
 	overflow:hidden;
@@ -128,4 +130,61 @@ messed up
 
 .messed-up > .score{
 	color: #000;
+}
+
+.mobileControls{
+	margin-top: 100px;
+	font-size:120px;
+	width: 100%;
+	text-align: center;
+	display:none;
+}
+
+/* Portrait */
+@media only screen
+and (min-device-width: 320px)
+and (max-device-width: 480px)
+and (-webkit-min-device-pixel-ratio: 2)
+and (orientation: portrait) {
+	.mobileControls{
+		display: block;
+	}
+}
+
+.mobileControls .btn{
+	border: 2px solid black;
+	padding: 5px;
+	background-color: rgba(255, 255, 255, 0.47);
+	display: block;
+	width: 100px;
+	height: 100px;
+	margin:auto;
+}
+
+.btn-set{
+	width:400px;
+	margin:auto;
+	margin-top: 30px;
+	margin-bottom: 30px;
+	background-color: yellow;
+}
+
+.mobileControls > .fa-chevron-up{
+
+	margin:auto;
+	border: 2px solid black;
+	padding: 5px;
+	background-color: rgba(255, 255, 255, 0.47);
+}
+
+.mobileControls .fa-chevron-left{
+	float:left;
+}
+
+.mobileControls .fa-chevron-right{
+	float:right;
+}
+
+.mobileControls .fa-chevron-down{
+	margin-top: 30px;
 }
