@@ -28,11 +28,21 @@ body, html{
 	display: block;
 }
 
-.snekContainer{
+.snekContainer, .prescreen{
 	width: 700px;
 	height: 400px;
 	position: relative;
 	overflow:hidden;
+	margin:auto;
+}
+
+.prescreen{
+	background-color:#FFF;
+	border: 2px solid #000;
+}
+
+.snekContainer{
+	display:none;
 }
 
 .score{

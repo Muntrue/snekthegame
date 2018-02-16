@@ -9,7 +9,13 @@
 			src="https://code.jquery.com/jquery-3.2.1.min.js"
 			integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
 			crossorigin="anonymous"></script>
-	<script src="sc.js"></script>
+
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js"></script>
+
+
+	<!--<script src="sc.js"></script>-->
+	<script src="controller.js"></script>
+	<script src="client.js"></script>
 	<script defer src="https://use.fontawesome.com/releases/v5.0.6/js/all.js"></script>
 
 	<link rel="stylesheet" type="text/css" href="style.css">
@@ -18,7 +24,16 @@
 </head>
 <body>
 
-<img src="logo.png" class="logo" />
+<!--<img src="logo.png" class="logo" />-->
+
+<div class="prescreen">
+	<h3>Welcome to snekthegame</h3>
+
+	<div class="roomContainer">
+		<input type="text" name="roomName" class="roomName"> <button onclick="connectToRoom()">Connect to room</button>
+		<button onclick="makeNewRoom()">Make new room</button>
+	</div>
+</div>
 
 <div class="snekContainer light">
 
@@ -36,6 +51,17 @@
 	<i class="btn fas fa-chevron-down"></i>
 </div>
 
+<script type="text/javascript">
 
+	function makeid() {
+		var text = "";
+		var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+		for (var i = 0; i < 5; i++)
+			text += possible.charAt(Math.floor(Math.random() * possible.length));
+
+		return text;
+	}
+</script>
 </body>
 </html>
