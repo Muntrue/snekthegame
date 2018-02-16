@@ -1,15 +1,17 @@
-function Client(room)
+function Client(room, playerName, color)
 {
 	var _this = this;
 
 	this.server = 'http://localhost:3000';
 	this.socket = null;
 	this.room = room;
+	this.playerName = playerName;
 	this.socketSessionId = null;
+	this.color = color;
 
 	this.boot = function(){
 
-		this.socket = io(this.server + '?room=' + this.room);
+		this.socket = io(this.server + '?room=' + this.room + '&name=' + this.playerName + '&color=' + this.color);
 
 		this.socket.on('userCountResponse', function(msg){
 			userCountResponse(msg);

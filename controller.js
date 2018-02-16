@@ -1,11 +1,23 @@
 var roomId = null;
 var client = null;
+var playerColor = null;
 
-var socketWaitLoop = null;
-
+/**
+ * On document ready
+ */
 $(document).ready(function(){
 
-	$('[data-toggle="tooltip"]').tooltip()
+    $('.cp10').colorpicker({
+        useHashPrefix: false,
+		input: false
+    }).on('colorpickerCreate', function(e){
+        e.colorpicker.setValue('#'+generateRandomColor())
+	}).on('colorpickerChange', function (e) {
+		playerColor = e.color.toHex();
+    });
+
+
+	$('[data-toggle="tooltip"]').tooltip();
 
 	var randomId = generateRandomId();
 
@@ -21,22 +33,42 @@ $(document).ready(function(){
 		if($(this).val() === ''){
 			$(this).val(randomId);
 		}
-	})
+	});
 
+	var playerName = generateRandomName();
 
+	$('.txt-plyr-name').val(playerName);
+    $('.txt-plyr-name').on('focus', function(){
+        if($(this).val() === playerName){
+            $(this).val('');
+        }
+    })
+
+    $('.txt-plyr-name').on('blur', function(){
+        if($(this).val() === ''){
+            $(this).val(playerName);
+        }
+    });
 });
 
+/**
+ * Connect to a room
+ */
 function connectToRoom(){
 	roomId = $('.txt-room-id').val();
-	client = new Client(roomId);
+	client = new Client(roomId, $('.txt-plyr-name').val(), playerColor);
 
 	$('.roomContainer').html('<h2>You are connected to room<br /><span class="badge badge-secondary">'+ roomId +'</span></h2>').css('text-align', 'center');
 }
 
-
+/**
+ * Generate random string
+ *
+ * @returns {string}
+ */
 function generateRandomId() {
 	var text = "";
-	var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+	var possible = "ABCDEFGHIJKLMNPQRSTUVWXYZ123456789";
 
 	for (var i = 0; i < 5; i++)
 		text += possible.charAt(Math.floor(Math.random() * possible.length));
@@ -44,6 +76,29 @@ function generateRandomId() {
 	return text;
 }
 
+/**
+ * Generate a random color
+ *
+ * @returns {string}
+ */
+function generateRandomColor(){
+	return Math.floor(Math.random()*16777215).toString(16);
+}
+
+/**
+ * Generate a random name
+ *
+ * @returns {string}
+ */
+function generateRandomName(){
+	return "Player"+(Math.floor(Math.random() * 10000) + 1000);
+}
+
+/**
+ * Pre game player ready handler
+ *
+ * @param data
+ */
 function preGamePlayerReady(data){
 
 	if(data[client.socketSessionId].owner){
@@ -66,18 +121,20 @@ function preGamePlayerReady(data){
 	Object.keys(data).forEach(function(key, val) {
 		var newLi = "";
 		var me = "";
+		var meEl = "";
 
 		if(data[key].id === client.socketSessionId){
 			me = "pregameMe";
+			meEl = '<span class="badge badge-secondary float-right mr-3">You</span></li>';
 		}
 
 		if(data[key].ready)
 		{
 			readyPlayers.push(client.socketSessionId);
 
-			newLi = '<li class="list-group-item ' + me + '">Player ' + playerNum + ' <span class="badge badge-success float-right">Ready</span></li>';
+			newLi = '<li style="background-color:#' + data[key].color + ';" class="list-group-item prescreen-name ' + me + '">' + data[key].name + '<span class="badge badge-success float-right">Ready</span>'+meEl+'</li>';
 		}else{
-			newLi = '<li class="list-group-item ' + me + '">Player ' + playerNum + ' <span class="badge badge-danger float-right">Not ready</span></li>';
+			newLi = '<li style="background-color:#' + data[key].color + ';" class="list-group-item prescreen-name ' + me + '">' + data[key].name + '<span class="badge badge-danger float-right">Not ready</span>'+ meEl +'</li>';
 		}
 
 		$('.plyr-count ul').append(newLi);
@@ -91,6 +148,9 @@ function preGamePlayerReady(data){
 	}
 }
 
+/**
+ * Set the player to ready
+ */
 function setPlayerReady(){
 	$('.btn-ready').addClass('disabled');
 	client.setPlayerReady();

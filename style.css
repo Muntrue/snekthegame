@@ -200,6 +200,24 @@ messed up
 	margin-top: 30px;
 }
 
-.pregameMe{
-	background-color: rgba(0, 0, 0, 0.09);
+
+.input-group-prepend, .input-group-prepend > span{
+	width: 130px;
+}
+
+.prescreen-name{
+	font-weight: bold;
+	color: #000;
+}
+.input-group-addon {
+	padding: 8px 12px;
+	font-size: 14px;
+	font-weight: normal;
+	line-height: 2;
+	color: #555555;
+	text-align: center;
+	background-color: #eeeeee;
+	border: 1px solid #cccccc;
+	border-radius: 0 4px 4px 0px;
+	border-left: 0px;
 }

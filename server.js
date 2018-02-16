@@ -13,6 +13,12 @@ io.on('connection', function(socket){
 	// Get room variable
 	var room = socket.handshake.query.room;
 
+    // Get name variable
+    var playerName = socket.handshake.query.name;
+
+    // Get color variable
+    var playerColor = socket.handshake.query.color;
+
 	var preGameLoop = null;
 
 	// Send socket session id to client
@@ -33,7 +39,9 @@ io.on('connection', function(socket){
 	connectedRoomUsers[room][socket.id] = {
 		id: socket.id,
 		owner: owner,
-		ready: false
+		ready: false,
+		name: playerName,
+		color: playerColor
 	};
 
 	/**
