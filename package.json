@@ -1,0 +1,8 @@
+{
+  "name": "socket-snek",
+  "version": "0.0.1",
+  "description": "my first socket.io app",
+  "dependencies": {
+    "express": "^4.15.2"
+  }
+}
