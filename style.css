@@ -41,6 +41,10 @@ body, html{
 	border: 2px solid #000;
 }
 
+.prescreen > div{
+	padding: 15px;
+}
+
 .snekContainer{
 	display:none;
 }
@@ -194,4 +198,8 @@ messed up
 
 .mobileControls .fa-chevron-down{
 	margin-top: 30px;
+}
+
+.pregameMe{
+	background-color: rgba(0, 0, 0, 0.09);
 }

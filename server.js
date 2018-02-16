@@ -13,6 +13,8 @@ io.on('connection', function(socket){
 	// Get room variable
 	var room = socket.handshake.query.room;
 
+	var preGameLoop = null;
+
 	// Send socket session id to client
 	io.to(socket.id).emit("setSocketSessionId", socket.id);
 
@@ -24,10 +26,22 @@ io.on('connection', function(socket){
 		connectedRoomUsers[room] = {};
 	}
 
+	var owner = false;
+	if(Object.keys(connectedRoomUsers[room]).length === 0) owner = true;
+
 	// Add player to room count
 	connectedRoomUsers[room][socket.id] = {
+		id: socket.id,
+		owner: owner,
 		ready: false
 	};
+
+	/**
+	 * Set player ready
+	 */
+	socket.on('setPlayerReady', function(){
+		connectedRoomUsers[room][socket.id].ready = true;
+	});
 
 	/**
 	 * Disconnect socket
@@ -37,9 +51,9 @@ io.on('connection', function(socket){
 		console.log('user disconnected from room ' + room);
 	});
 
-	// Tick rate for player info
-	setInterval(function(){
-		io.to(room).emit("setSocketData", connectedRoomUsers[room]);
+	// Tick rate for player start info
+	preGameLoop = setInterval(function(){
+		io.to(room).emit("setPreGameData", connectedRoomUsers[room]);
 	}, 500);
 });
 

@@ -1,6 +1,5 @@
 function Client(room)
 {
-
 	var _this = this;
 
 	this.server = 'http://localhost:3000';
@@ -18,17 +17,18 @@ function Client(room)
 
 		this.socket.on('setSocketSessionId', function(msg){
 			_this.socketSessionId = msg;
-			console.log(msg);
 		});
 
-		this.socket.on('setSocketData', function(data){
-			console.log(data);
-			Object.keys(data).forEach(function(key, val) {
-
-				console.log(val);
-
-			});
+		this.socket.on('setPreGameData', function(data){
+			preGamePlayerReady(data);
 		});
+	};
+
+	/**
+	 * Set player ready
+	 */
+	this.setPlayerReady = function(){
+		this.socket.emit('setPlayerReady');
 	};
 
 
