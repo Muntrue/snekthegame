@@ -91,7 +91,10 @@ function PreScreenController(parentController){
 
 	var _this = this;
 
+	// Pre game interval loop
 	this.preGameLoop = null;
+
+	// Tick rate to send to the serer
 	this.tickRate = 500;
 
     /**
@@ -144,11 +147,17 @@ function PreScreenController(parentController){
         }, this.tickRate);
 	};
 
+    /**
+	 * Send pregame data to the client
+     */
     this.sendPreGameDataToClient = function()
 	{
         io.to(parentController.room).emit("setPreGameData", parentController.roomObj);
 	};
 
+    /**
+	 * Stop the pre game loop
+     */
 	this.stopPreGameLoop = function(){
 		clearInterval(this.preGameLoop);
 		this.preGameLoop = null;
