@@ -7,6 +7,9 @@ var playerColor = null;
  */
 $(document).ready(function(){
 
+	var snek = new Snek();
+	snek.start();
+
     $('.cp10').colorpicker({
         useHashPrefix: false,
 		input: false

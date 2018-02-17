@@ -15,6 +15,7 @@ body, html{
 #head{
 	left: 50px;
 	top: 50px;
+	background-color: red !important;
 }
 
 .food{
