@@ -48,6 +48,10 @@ function Client(room, playerName, color, mainController)
         	mainController.updatePositions(data);
 		})
 
+        this.socket.on('setNewFood', function(position){
+            mainController.getNewFood(position);
+        })
+
 	};
 
 	this.startGame = function(){

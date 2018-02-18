@@ -215,7 +215,17 @@ function MainController(){
 		this.client.updateDirectionTo(direction);
 	};
 
+    /**
+	 * Set a player dead
+	 *
+     * @param key
+     */
 	this.setPlayerDead = function(key){
     	this.client.setPlayerDead(key);
+	};
+
+	this.getNewFood = function(position){
+		console.log(position);
+		this.snekController.getNewFood(position);
 	};
 }

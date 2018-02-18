@@ -291,7 +291,14 @@ function SnekController(parentController){
 
         this.setUpPlayerStartPositions(playerCount);
 
+        this.setNewFood();
+
         this.updatePlayerMovement();
+    };
+
+    this.setNewFood = function(){
+        var position = this.newFoodPosition();
+        io.to(parentController.room).emit("setNewFood", position);
     };
 
     /**
@@ -416,6 +423,36 @@ function SnekController(parentController){
         clearTimeout(_this.gameLoop);
         clearTimeout(this.gameLoop);
     };
+
+    /**
+     * Generate a new food position
+     *
+     * @returns {{x: *, y: *}}
+     */
+    this.newFoodPosition = function(){
+       return {
+           'x' : this.getNumberBetween(0,parentController.roomProperties.containerDimensions.width - 10),
+           'y' : this.getNumberBetween(0,parentController.roomProperties.containerDimensions.height - 10)
+       }
+    };
+
+    /**
+     * Get number between min and max
+     *
+     * @param min
+     * @param max
+     * @return {*}
+     */
+    this.getNumberBetween = function(min, max) {
+        newNumber = Math.floor(Math.random() * (max - min + 1)) + min;
+
+        if (newNumber % 10 === 0) {
+            return newNumber;
+        }
+        else {
+            return this.getNumberBetween(min, max)
+        }
+    }
 
 }
 

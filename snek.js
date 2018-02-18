@@ -11,6 +11,8 @@ function Snek(mainController){
     this.speed = 8;
     this.deadPlayers = [];
 
+    this.foodElem = null;
+
     /**
      * Set start positions
      *
@@ -18,10 +20,24 @@ function Snek(mainController){
      */
     this.setStartPositions = function(data){
 
-        console.log("I am player" + mainController.client.socketSessionId);
         this.placeHeads(data);
+        this.createFoodElement();
         this.placeBodyParts(data);
         this.startKeyListeners();
+    };
+
+    /**
+     * Create food elems
+     */
+    this.createFoodElement = function(){
+        this.container.append('<div class="food"></div>');
+        this.foodElem = $('.food');
+        this.foodElem.css({top: -100, left: -100});
+    };
+
+    this.getNewFood = function(position){
+        this.foodElem.css('left', position.x + 'px');
+        this.foodElem.css('top', position.y + 'px');
     };
 
     /**
@@ -191,7 +207,7 @@ function Snek(mainController){
 
     /**
      * Set a player dead
-     * 
+     *
      * @param key
      */
     this.setPlayerDead = function(key){
@@ -359,6 +375,52 @@ function Snek(mainController){
         setTimeout(function () {
             _this.moveParts();
         }, (10 * this.speed));
+    };
+
+
+    /**
+     * Mobile buttons
+     */
+    this.mobileKeyListeners = function(){
+        // Up
+        $(document).on('touchstart', '.fa-chevron-up', function(event){
+            if(event.handled === false) return;
+            event.stopPropagation();
+            event.preventDefault();
+            event.handled = true;
+
+            if(direction !== 'D') mainController.updateDirectionTo('U');
+        });
+
+        // Left
+        $(document).on('touchstart', '.fa-chevron-left', function(event){
+            if(event.handled === false) return;
+            event.stopPropagation();
+            event.preventDefault();
+            event.handled = true;
+
+            if(direction !== 'R') mainController.updateDirectionTo('L');
+        });
+
+        // Right
+        $(document).on('touchstart', '.fa-chevron-right', function(event){
+            if(event.handled === false) return;
+            event.stopPropagation();
+            event.preventDefault();
+            event.handled = true;
+
+            if(direction !== 'L') mainController.updateDirectionTo('R');
+        });
+
+        // Down
+        $(document).on('touchstart', '.fa-chevron-down', function(event){
+            if(event.handled === false) return;
+            event.stopPropagation();
+            event.preventDefault();
+            event.handled = true;
+
+            if(direction !== 'U') mainController.updateDirectionTo('D');
+        });
     };
 
     /**
