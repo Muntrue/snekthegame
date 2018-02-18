@@ -46,10 +46,6 @@ body, html{
 	padding: 15px;
 }
 
-.snekContainer{
-	display:none;
-}
-
 .score{
 	width: 800px;
 	display:block;

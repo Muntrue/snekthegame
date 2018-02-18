@@ -1,4 +1,4 @@
-function Client(room, playerName, color)
+function Client(room, playerName, color, mainController)
 {
 	var _this = this;
 
@@ -13,8 +13,15 @@ function Client(room, playerName, color)
 
 		this.socket = io(this.server + '?room=' + this.room + '&name=' + this.playerName + '&color=' + this.color);
 
+		var containerDimensions = {
+			width: $('.snekContainer').width(),
+			height: $('.snekContainer').height()
+		};
+
+        this.socket.emit('setContainerDimensions', containerDimensions);
+
 		this.socket.on('userCountResponse', function(msg){
-			userCountResponse(msg);
+			mainController.userCountResponse(msg);
 		});
 
 		this.socket.on('setSocketSessionId', function(msg){
@@ -22,8 +29,25 @@ function Client(room, playerName, color)
 		});
 
 		this.socket.on('setPreGameData', function(data){
-			preGamePlayerReady(data);
+            mainController.preGamePlayerReady(data);
 		});
+
+        this.socket.on('getGameStartCountdown', function(data){
+            mainController.updateCountdown(data);
+        });
+
+        this.socket.on('gameStart', function(){
+            mainController.initializeGame();
+        });
+
+        this.socket.on('setupStartPositions', function(data){
+            mainController.setupStartPositions(data);
+		});
+
+	};
+
+	this.startGame = function(){
+        this.socket.emit('startGame');
 	};
 
 	/**

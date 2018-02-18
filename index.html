@@ -32,7 +32,7 @@
 
 <img src="logo.png" class="logo" />
 
-<div class="snekContainer light">
+<div class="snekContainer light d-none">
 
 </div>
 
@@ -65,7 +65,7 @@
 				</div>-->
 			</div>
 
-			<button type="button" class="btn btn-primary btn-lg d-block mx-auto mt-3 w-100" onclick="connectToRoom()">Connect</button>
+			<button type="button" class="btn btn-primary btn-lg d-block mx-auto mt-3 w-100" onclick="mainController.connectToRoom()">Connect</button>
 		</div>
 
 
@@ -75,8 +75,9 @@
 			</ul>
 		</div>
 
-		<button type="button" class="btn btn-primary btn-lg mx-auto mt-3 d-none btn-ready" onclick="setPlayerReady()">Ready</button>
-		<button type="button" class="btn btn-primary btn-lg mx-auto mt-3 d-none btn-start disabled" data-toggle="tooltip" data-placement="top" title="Not enough players">Start Game</button>
+		<button type="button" class="btn btn-primary btn-lg mx-auto mt-3 d-none btn-ready" onclick="mainController.setPlayerReady()">Ready</button>
+		<button type="button" class="btn btn-primary btn-lg mx-auto mt-3 d-none btn-start disabled"  onclick="mainController.startGame()" data-toggle="tooltip" data-placement="top" title="Not enough players">Start Game</button>
+		<div class="gameCountdown float-right mt-3 d-none"><h2>Game starting in <span>3</span></h2></div>
 	</div>
 </div>
 

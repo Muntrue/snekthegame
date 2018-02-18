@@ -1,5 +1,5 @@
-var express = require('express'),
-	http = require('http');
+var express = require('express');
+var http = require('http');
 var app = express();
 var server = http.createServer(app);
 var io = require('socket.io').listen(server);
@@ -7,8 +7,10 @@ var io = require('socket.io').listen(server);
 server.listen(3000);
 
 var connectedRoomUsers = {};
+var roomProperties = {};
 
 var dev = new Dev(true);
+dev.playerReady = true;
 
 io.on('connection', function(socket){
 	new SocketConnection(socket);
@@ -42,6 +44,20 @@ function SocketConnection(socket){
     // Room object from global object
     this.roomObj = null;
 
+    // Room properties
+    this.roomProperties = null;
+
+    this.socketTimeout = null;
+
+    // Snek play field dimensions
+    this.containerDimensions = null;
+
+    // Prescreen class
+    this.preScreen = null;
+
+    // Snekcontroller
+    this.snekController = null;
+
     /**
 	 * Init server connection
      */
@@ -50,9 +66,9 @@ function SocketConnection(socket){
         // Send socket session id to client
         io.to(socket.id).emit("setSocketSessionId", socket.id);
 
-        var preScreen = new PreScreenController(this);
-        preScreen.init();
-        preScreen.startPreGameLoop();
+        this.preScreen = new PreScreenController(this);
+        this.preScreen.init();
+        this.preScreen.startPreGameLoop();
 	};
 
     /**
@@ -75,8 +91,41 @@ function SocketConnection(socket){
      * Disconnect socket
      */
     socket.on('disconnect', function(){
+        _this.disconnectClient();
+    });
+
+    /**
+     * Disconnect the client
+     */
+    this.disconnectClient = function(){
         delete _this.roomObj[socket.id];
-        dev.log(_this.playerName + ' disconnected from room ' + _this.room)
+        dev.log(_this.playerName + ' disconnected from room ' + _this.room);
+        clearInterval(this.preScreen.preGameLoop);
+        _this.cleanUpRoom();
+    };
+
+    socket.on("setContainerDimensions" , function(dimensions){
+       _this.roomProperties.containerDimensions = {
+           width: parseInt(dimensions.width),
+           height: parseInt(dimensions.height)
+       };
+    });
+
+    /**
+     * Remove the room if empty
+     */
+    this.cleanUpRoom = function(){
+        dev.log(connectedRoomUsers);
+        if(Object.keys(_this.roomObj).length === 0){
+            dev.log('Deleting room');
+            delete connectedRoomUsers[_this.room];
+            delete roomProperties[_this.room];
+        }
+    };
+
+    socket.on('startGame', function(){
+        _this.preScreen.stopPreGameLoop()
+        _this.snekController = new SnekController(_this);
     });
 
     this.init();
@@ -118,9 +167,12 @@ function PreScreenController(parentController){
      */
     this.setupGlobalRoom = function(){
         if( ! connectedRoomUsers[parentController.room]){
+            dev.log('Room is new, creating...');
+            roomProperties[parentController.room] = {};
             connectedRoomUsers[parentController.room] = {};
         }
 
+        parentController.roomProperties = roomProperties[parentController.room];
         parentController.roomObj = connectedRoomUsers[parentController.room];
     };
 
@@ -131,9 +183,13 @@ function PreScreenController(parentController){
         parentController.roomObj[parentController.socket.id] = {
             id: parentController.socket.id,
             owner: parentController.checkIfRoomOwner(),
-            ready: false,
+            ready: dev.playerReady,
             name: parentController.playerName,
-            color: parentController.playerColor
+            color: parentController.playerColor,
+            posx: null,
+            posy: null,
+            direction: null,
+            segments: 2
         };
     };
 
@@ -160,10 +216,98 @@ function PreScreenController(parentController){
      */
 	this.stopPreGameLoop = function(){
 		clearInterval(this.preGameLoop);
-		this.preGameLoop = null;
 
 		dev.log("interval stop");
 	}
+}
+
+/**
+ * SnekController
+ *
+ * @param parentController
+ * @constructor
+ */
+function SnekController(parentController){
+
+    var _this = this;
+
+    /**
+     * SnekControlelr init
+     */
+    this.init = function(){
+        this.startCountDown();
+    };
+
+    /**
+     * Start the countdown to start the game
+     */
+    this.startCountDown = function(){
+        var countDown = 1;
+
+        setInterval(function(){
+            io.to(parentController.room).emit("getGameStartCountdown", countDown);
+            countDown--;
+
+            if(countDown < 0){
+                _this.setupGame();
+               clearInterval(this);
+            }
+
+        }, 1000);
+    };
+
+    /**
+     * Set up game
+     */
+    this.setupGame = function(){
+        var playerCount = Object.keys(parentController.roomObj).length;
+
+        dev.log('Start game');
+        io.to(parentController.room).emit("gameStart");
+
+        this.setUpPlayerStartPositions(playerCount);
+    };
+
+    /**
+     * Set up start positions
+     *
+     * @param playerCount
+     */
+    this.setUpPlayerStartPositions = function(playerCount){
+
+        var playerPositions = [];
+
+        var twoPlayerPositions = [
+            {
+                'x' : 50,
+                'y' : (parentController.roomProperties.containerDimensions.height / 2),
+                'direction' : 'R'
+            },
+            {
+                'x' : (parentController.roomProperties.containerDimensions.width - 50),
+                'y' : (parentController.roomProperties.containerDimensions.height / 2),
+                'direction' : 'L'
+            }
+        ];
+
+        switch(playerCount){
+            case 2:{
+                playerPositions = twoPlayerPositions;
+                break;
+            }
+        }
+
+        var loopCounter = 0;
+        Object.keys(parentController.roomObj).forEach(function(key, val) {
+            parentController.roomObj[key].posx = playerPositions[loopCounter].x;
+            parentController.roomObj[key].posy = playerPositions[loopCounter].y;
+            parentController.roomObj[key].direction = playerPositions[loopCounter].direction;
+        });
+
+        io.to(parentController.room).emit("setupStartPositions", parentController.roomObj);
+    };
+
+    this.init();
 }
 
 /**
@@ -174,6 +318,7 @@ function PreScreenController(parentController){
  */
 function Dev(devmode){
 
+    this.playerReady = null;
 	this.devmode = devmode;
 
     /**

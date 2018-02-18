@@ -1,4 +1,4 @@
-function Snek(){
+function Snek(mainController){
 
     var _this = this;
 
@@ -10,12 +10,15 @@ function Snek(){
     this.direction = "R";
     this.speed = 8;
 
+
+    this.setStartPositions = function(data){
+        console.log(mainController.playerColor);
+    };
+
     /**
      * Start the game
      */
     this.start = function(){
-
-        this.container.show();
 
         // Create food element
         this.container.append('<div class="food"></div>');
