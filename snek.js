@@ -23,6 +23,7 @@ function Snek(mainController){
         this.placeHeads(data);
         this.createFoodElement();
         this.placeBodyParts(data);
+        this.startMobileKeyListeners();
         this.startKeyListeners();
     };
 
@@ -40,6 +41,12 @@ function Snek(mainController){
         this.foodElem.css('top', position.y + 'px');
     };
 
+    this.spawnNewSegmentForPlayer = function(key, data){
+        if(key === mainController.client.socketSessionId)
+            _this.container.append('<div id="bodyPart_' + key + '_'+ (data[key].segments - 1) +'" class="bodyPart self tail tail_'+key+'" style="background-color:#'+data[key].color+';"></div>');
+        else
+            _this.container.append('<div id="bodyPart_' + key + '_'+ (data[key].segments - 1) +'" class="bodyPart tail tail_'+key+'" style="background-color:#'+data[key].color+';"></div>');
+    };
     /**
      * Place snek heads
      *
@@ -67,7 +74,7 @@ function Snek(mainController){
             for(i=0; i < data[key].segments; i++)
             {
                 if(key === mainController.client.socketSessionId)
-                _this.container.append('<div id="bodyPart_' + key + '_'+ i +'" class="bodyPart self tail tail_'+key+'" style="background-color:#'+data[key].color+';"></div>');
+                    _this.container.append('<div id="bodyPart_' + key + '_'+ i +'" class="bodyPart self tail tail_'+key+'" style="background-color:#'+data[key].color+';"></div>');
                 else
                     _this.container.append('<div id="bodyPart_' + key + '_'+ i +'" class="bodyPart tail tail_'+key+'" style="background-color:#'+data[key].color+';"></div>');
 
@@ -172,8 +179,8 @@ function Snek(mainController){
                 // Reposition heads
                 $('.head_' + key).css({top: data[key].posy, left: data[key].posx});
             }else{
-                $('.tail_'+key).remove();
-                $('.head_'+key).remove();
+                $('.tail_'+key).css('visibility', 'hidden');
+                $('.head_'+key).css('visibility', 'hidden');
             }
         });
 
@@ -188,7 +195,8 @@ function Snek(mainController){
      */
     this.detectPlayerCollision = function(posx, posy, data){
 
-          $('.head').each(function(){
+        // Body detection
+        $('.head').each(function(){
             var headPosx = $(this).position().left;
             var headPosy = $(this).position().top;
             var headId = $(this).attr('id').replace("head_","");
@@ -202,7 +210,32 @@ function Snek(mainController){
                     }
                 }
              });
-          });
+
+             // Edge detection
+             if($(this).position().left < 0 || $(this).position().left > _this.container.width() ||
+                 $(this).position().top < 0 || $(this).position().top > _this.container.height()){
+                     if(_this.deadPlayers.indexOf(headId) < 0) {
+                         _this.deadPlayers.push(headId);
+                         _this.setPlayerDead(headId)
+                     }
+             }
+        });
+
+        // Food detection
+        var headPosition = {
+            'x': $('.head_'+mainController.client.socketSessionId).position().left,
+            'y': $('.head_'+mainController.client.socketSessionId).position().top
+        };
+
+        var foodPosition = {
+            'x' :  this.foodElem.position().left,
+            'y' :  this.foodElem.position().top
+        };
+
+
+        if(headPosition.x === foodPosition.x && headPosition.y === foodPosition.y){
+            mainController.playerCollectedFood();
+        }
     };
 
     /**
@@ -381,7 +414,7 @@ function Snek(mainController){
     /**
      * Mobile buttons
      */
-    this.mobileKeyListeners = function(){
+    this.startMobileKeyListeners = function(){
         // Up
         $(document).on('touchstart', '.fa-chevron-up', function(event){
             if(event.handled === false) return;
@@ -389,7 +422,7 @@ function Snek(mainController){
             event.preventDefault();
             event.handled = true;
 
-            if(direction !== 'D') mainController.updateDirectionTo('U');
+            if(_this.direction !== 'D') mainController.updateDirectionTo('U');
         });
 
         // Left
@@ -399,7 +432,7 @@ function Snek(mainController){
             event.preventDefault();
             event.handled = true;
 
-            if(direction !== 'R') mainController.updateDirectionTo('L');
+            if(_this.direction !== 'R') mainController.updateDirectionTo('L');
         });
 
         // Right
@@ -409,7 +442,7 @@ function Snek(mainController){
             event.preventDefault();
             event.handled = true;
 
-            if(direction !== 'L') mainController.updateDirectionTo('R');
+            if(_this.direction !== 'L') mainController.updateDirectionTo('R');
         });
 
         // Down
@@ -419,7 +452,7 @@ function Snek(mainController){
             event.preventDefault();
             event.handled = true;
 
-            if(direction !== 'U') mainController.updateDirectionTo('D');
+            if(_this.direction !== 'U') mainController.updateDirectionTo('D');
         });
     };
 

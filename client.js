@@ -46,12 +46,20 @@ function Client(room, playerName, color, mainController)
 
         this.socket.on('setNewPositions', function(data){
         	mainController.updatePositions(data);
-		})
+		});
 
         this.socket.on('setNewFood', function(position){
             mainController.getNewFood(position);
-        })
+        });
 
+        this.socket.on('spawnNewSegmentForPlayer', function(key, data){
+            mainController.spawnNewSegmentForPlayer(key, data);
+        });
+
+	};
+
+	this.playerCollectedFood = function(){
+        this.socket.emit('playerCollectedFood');
 	};
 
 	this.startGame = function(){

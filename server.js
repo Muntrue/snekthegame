@@ -86,6 +86,13 @@ function SocketConnection(socket){
 	};
 
     /**
+     * Player has collected food
+     */
+    socket.on("playerCollectedFood", function(){
+        _this.snekController.playerCollectedFood();
+    });
+
+    /**
      * Set player ready
      */
     socket.on('setPlayerReady', function(){
@@ -208,7 +215,8 @@ function PreScreenController(parentController){
             posy: null,
             direction: null,
             segments: 3,
-            dead: false
+            dead: false,
+            score: 0
         };
     };
 
@@ -263,6 +271,24 @@ function SnekController(parentController){
     };
 
     /**
+     * Player collected food
+     */
+    this.playerCollectedFood = function(){
+        var socketId = parentController.socket.id;
+        parentController.roomObj[socketId].segments = parentController.roomObj[socketId].segments + 1;
+        parentController.roomObj[socketId].score = parentController.roomObj[socketId].segments + 1;
+        this.spawnNewSegmentForPlayer(socketId);
+        this.setNewFood(socketId);
+    };
+
+    /**
+     * Spawn a new segment for the player
+     */
+    this.spawnNewSegmentForPlayer = function(socketId){
+        io.to(parentController.room).emit("spawnNewSegmentForPlayer", socketId, parentController.roomObj);
+    }
+
+    /**
      * Start the countdown to start the game
      */
     this.startCountDown = function(){
@@ -312,24 +338,24 @@ function SnekController(parentController){
 
         var p1Pos = {
             'x' : 50,
-            'y' : (parentController.roomProperties.containerDimensions.height / 2) - 5,
+            'y' : (parentController.roomProperties.containerDimensions.height / 2),
             'direction' : 'R'
         };
 
         var p2Pos = {
             'x' : (parentController.roomProperties.containerDimensions.width - 50),
-            'y' : (parentController.roomProperties.containerDimensions.height / 2) - 5,
+            'y' : (parentController.roomProperties.containerDimensions.height / 2),
             'direction' : 'L'
         };
 
         var p3Pos = {
-            'x' : (parentController.roomProperties.containerDimensions.width / 2) - 5,
+            'x' : (parentController.roomProperties.containerDimensions.width / 2),
             'y' : 50,
             'direction' : 'D'
         };
 
         var p4Pos = {
-            'x' : (parentController.roomProperties.containerDimensions.width / 2) - 5,
+            'x' : (parentController.roomProperties.containerDimensions.width / 2),
             'y' : (parentController.roomProperties.containerDimensions.height - 50),
             'direction' : 'U'
         };

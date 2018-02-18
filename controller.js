@@ -224,8 +224,21 @@ function MainController(){
     	this.client.setPlayerDead(key);
 	};
 
+    /**
+	 * Get new food
+	 *
+     * @param position
+     */
 	this.getNewFood = function(position){
 		console.log(position);
 		this.snekController.getNewFood(position);
+	};
+
+	this.playerCollectedFood = function(){
+		this.client.playerCollectedFood();
+	};
+
+	this.spawnNewSegmentForPlayer = function(key, data){
+		this.snekController.spawnNewSegmentForPlayer(key, data);
 	};
 }

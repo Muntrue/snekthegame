@@ -161,13 +161,13 @@ messed up
 	padding: 5px;
 	background-color: rgba(255, 255, 255, 0.47);
 	display: block;
-	width: 100px;
-	height: 100px;
+	width: 150px;
+	height: 150px;
 	margin:auto;
 }
 
 .btn-set{
-	width:400px;
+	width:600px;
 	margin:auto;
 	margin-top: 30px;
 	margin-bottom: 30px;
