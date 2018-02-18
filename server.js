@@ -9,8 +9,8 @@ server.listen(3000);
 var connectedRoomUsers = {};
 var roomProperties = {};
 
-var dev = new Dev(true);
-dev.playerReady = true;
+var dev = new Dev(false);
+dev.playerReady = false;
 
 io.on('connection', function(socket){
 	new SocketConnection(socket);
@@ -292,7 +292,7 @@ function SnekController(parentController){
      * Start the countdown to start the game
      */
     this.startCountDown = function(){
-        var countDown = 0;
+        var countDown = 3;
 
         setInterval(function(){
             io.to(parentController.room).emit("getGameStartCountdown", countDown);
