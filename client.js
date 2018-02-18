@@ -44,6 +44,10 @@ function Client(room, playerName, color, mainController)
             mainController.setupStartPositions(data);
 		});
 
+        this.socket.on('setNewPositions', function(data){
+        	mainController.updatePositions(data);
+		})
+
 	};
 
 	this.startGame = function(){
@@ -57,6 +61,18 @@ function Client(room, playerName, color, mainController)
 		this.socket.emit('setPlayerReady');
 	};
 
+    /**
+	 * Send update event to server
+	 *
+     * @param direction {string}
+     */
+	this.updateDirectionTo = function(direction){
+        this.socket.emit('setPlayerDirection', direction);
+	};
+
+	this.setPlayerDead = function(key){
+        this.socket.emit('setPlayerDead', key);
+	};
 
 	this.boot();
 }

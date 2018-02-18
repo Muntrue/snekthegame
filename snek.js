@@ -9,10 +9,196 @@ function Snek(mainController){
     this.segments = 2;
     this.direction = "R";
     this.speed = 8;
+    this.deadPlayers = [];
 
-
+    /**
+     * Set start positions
+     *
+     * @param data
+     */
     this.setStartPositions = function(data){
-        console.log(mainController.playerColor);
+
+        console.log("I am player" + mainController.client.socketSessionId);
+        this.placeHeads(data);
+        this.placeBodyParts(data);
+        this.startKeyListeners();
+    };
+
+    /**
+     * Place snek heads
+     *
+     * @param data
+     */
+    this.placeHeads = function(data){
+        Object.keys(data).forEach(function(key, val) {
+            var style = "left:" + data[key].posx + "px;top:" + data[key].posy + "px;";
+
+            if(key === mainController.client.socketSessionId)
+                _this.container.append('<div id="head_'+key+'" class="head bodyPart self head_'+key+'" style=' + style + '></div>');
+            else
+                _this.container.append('<div id="head_'+key+'"class="head bodyPart head_'+key+'" style=' + style + '></div>');
+        });
+    };
+
+    /**
+     * Place snek body parts
+     *
+     * @param data
+     */
+    this.placeBodyParts = function(data){
+        Object.keys(data).forEach(function(key, val) {
+            var prevPart = null;
+            for(i=0; i < data[key].segments; i++)
+            {
+                if(key === mainController.client.socketSessionId)
+                _this.container.append('<div id="bodyPart_' + key + '_'+ i +'" class="bodyPart self tail tail_'+key+'" style="background-color:#'+data[key].color+';"></div>');
+                else
+                    _this.container.append('<div id="bodyPart_' + key + '_'+ i +'" class="bodyPart tail tail_'+key+'" style="background-color:#'+data[key].color+';"></div>');
+
+                if(i === 0){
+                    prevPart = $('.head_'+key);
+                }else{
+                    prevPart = $('#bodyPart_'+ key +'_'+ (i-1));
+                }
+
+                var positions = _this.getBodyPartPositionBasedOnDirection(data[key].direction, prevPart);
+
+                $('#bodyPart_'+ key +'_'+ i).css({top: positions.top, left: positions.left});
+            }
+        });
+    };
+
+    /**
+     * Get the bodypart position based on direction
+     *
+     * @param direction
+     * @param prevPart
+     * @returns {{left: null, top: null}}
+     */
+    this.getBodyPartPositionBasedOnDirection = function(direction, prevPart){
+        var bodyPartPosition = {
+            left: null,
+            top: null
+        };
+
+        switch(direction){
+            case 'R':
+                bodyPartPosition = {
+                    'left' : (prevPart.position().left - 10),
+                    'top' :  prevPart.position().top
+                };
+            break;
+
+            case 'L':
+                bodyPartPosition = {
+                    'left' : (prevPart.position().left + 10),
+                    'top' :  prevPart.position().top
+                };
+            break;
+
+            case 'U':
+                bodyPartPosition = {
+                    'left' : prevPart.position().left,
+                    'top' :  (prevPart.position().top + 10)
+                };
+            break;
+
+            case 'D':
+                bodyPartPosition = {
+                    'left' : prevPart.position().left,
+                    'top' :  (prevPart.position().top - 10)
+                };
+            break;
+        }
+
+        return bodyPartPosition;
+    };
+
+    /**
+     * Update new positions
+     *
+     * @param data
+     */
+    this.updatePositions = function(data){
+
+        var selfNewPosition = {}
+
+        Object.keys(data).forEach(function(key, val) {
+
+            if( ! data[key].dead){
+                // Set new direction
+                if (key === mainController.client.socketSessionId) {
+                    _this.direction = data[key].direction;
+                    selfNewPosition = {
+                        'x': data[key].posx,
+                        'y': data[key].posy
+                    };
+                }
+
+                // Update body parts
+                for (i = 0; i < data[key].segments; i++) {
+                    var prevPart = null;
+
+                    var elementNumber = (data[key].segments - i) - 1;
+
+                    if (elementNumber === 0) {
+                        prevPart = $('.head_' + key);
+                    } else {
+                        prevPart = $('#bodyPart_' + key + '_' + (elementNumber - 1));
+                    }
+
+                    $('#bodyPart_' + key + '_' + elementNumber).css({
+                        top: prevPart.position().top,
+                        left: prevPart.position().left
+                    });
+                }
+
+                // Reposition heads
+                $('.head_' + key).css({top: data[key].posy, left: data[key].posx});
+            }else{
+                $('.tail_'+key).remove();
+                $('.head_'+key).remove();
+            }
+        });
+
+        _this.detectPlayerCollision(selfNewPosition.x, selfNewPosition.y, data);
+    };
+
+    /**
+     * Detect player collision
+     *
+     * @param posx
+     * @param posy
+     */
+    this.detectPlayerCollision = function(posx, posy, data){
+
+          $('.head').each(function(){
+            var headPosx = $(this).position().left;
+            var headPosy = $(this).position().top;
+            var headId = $(this).attr('id').replace("head_","");
+
+             $('.tail').each(function(){
+                if($(this).position().left === headPosx && $(this).position().top === headPosy){
+
+                    if(_this.deadPlayers.indexOf(headId) < 0) {
+                        _this.deadPlayers.push(headId);
+                        _this.setPlayerDead(headId)
+                    }
+                }
+             });
+          });
+    };
+
+    /**
+     * Set a player dead
+     * 
+     * @param key
+     */
+    this.setPlayerDead = function(key){
+        console.log("Player " + key + " id dead");
+        /*$('#head_'+key).css('visibility', 'hidden');
+        $('.tail_'+key).css('visibility', 'hidden');*/
+        mainController.setPlayerDead(key);
     };
 
     /**
@@ -27,7 +213,7 @@ function Snek(mainController){
 
         // Create snake element
         this.container.append('<div id="head" class="bodyPart"></div>');
-        this.head = this.head = $('#head');
+        this.head = this.head = $('.head');
 
         for (i = 0; i < this.segments; i++) {
 
@@ -186,22 +372,22 @@ function Snek(mainController){
             switch (e.which) {
                 case 37: case 65: // left
                 if (_this.direction !== 'R')
-                    _this.direction = "L";
+                    mainController.updateDirectionTo('L');
                 break;
 
                 case 38: case 87: // up
                 if (_this.direction !== 'D')
-                    _this.direction = "U";
+                    mainController.updateDirectionTo('U');
                 break;
 
                 case 39: case 68: // right
                 if (_this.direction !== 'L')
-                    _this.direction = "R";
+                    mainController.updateDirectionTo('R');
                 break;
 
                 case 40: case 83: // down
                 if (_this.direction !== 'U')
-                    _this.direction = "D";
+                    mainController.updateDirectionTo('D');
                 break;
 
                 default:

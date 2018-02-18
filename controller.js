@@ -23,7 +23,7 @@ $(document).ready(function(){
 	var randomId = mainController.generateRandomId();
 
 	//$('.txt-room-id').val(randomId);
-    $('.txt-room-id').val('fuku');
+    $('.txt-room-id').val('devroom');
 
 	$('.txt-room-id').on('focus', function(){
 		if($(this).val() === randomId){
@@ -201,4 +201,21 @@ function MainController(){
     this.setupStartPositions = function(data){
         this.snekController.setStartPositions(data);
     };
+
+    this.updatePositions = function(data){
+    	this.snekController.updatePositions(data);
+	};
+
+    /**
+	 * Update the players direction
+	 *
+     * @param direction {string}
+     */
+    this.updateDirectionTo = function(direction){
+		this.client.updateDirectionTo(direction);
+	};
+
+	this.setPlayerDead = function(key){
+    	this.client.setPlayerDead(key);
+	};
 }

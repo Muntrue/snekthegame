@@ -6,15 +6,13 @@ body, html{
 	height: 100%;
 }
 
-#head, .bodyPart{
+.head, .bodyPart{
 	width: 10px;
 	height: 10px;
 	position: absolute;
 }
 
-#head{
-	left: 50px;
-	top: 50px;
+.head{
 	background-color: red !important;
 }
 
@@ -63,14 +61,13 @@ body, html{
 
 .dark{
 	background-color:#000;
-	border: 2px solid #FFF;
 }
 
 .dark > #light{
 	color: #FFF;
 }
 
-.dark > #head{
+.dark > .head{
 	background-color:#ffffff;
 }
 
@@ -89,14 +86,14 @@ body, html{
 
 .light{
 	background-color: #ececec;
-	border: 2px solid #000;
+
 }
 
 .light > #light{
 	color: #000;
 }
 
-.light > #head{
+.light > .head{
 	background-color:#000000;
 }
 
@@ -126,7 +123,7 @@ messed up
 	color: #dfdfe0;
 }
 
-.messed-up > #head{
+.messed-up > .head{
 	background-color: #d4b030;
 }
 

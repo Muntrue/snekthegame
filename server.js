@@ -58,6 +58,8 @@ function SocketConnection(socket){
     // Snekcontroller
     this.snekController = null;
 
+    this.roomRunning = false;
+
     /**
 	 * Init server connection
      */
@@ -66,9 +68,12 @@ function SocketConnection(socket){
         // Send socket session id to client
         io.to(socket.id).emit("setSocketSessionId", socket.id);
 
+        this.snekController = new SnekController(this);
+
         this.preScreen = new PreScreenController(this);
         this.preScreen.init();
         this.preScreen.startPreGameLoop();
+        this.roomRunning = true;
 	};
 
     /**
@@ -95,6 +100,13 @@ function SocketConnection(socket){
     });
 
     /**
+     * Update player direction
+     */
+    socket.on('setPlayerDirection', function(direction){
+        _this.roomObj[socket.id].direction = direction;
+    });
+
+    /**
      * Disconnect the client
      */
     this.disconnectClient = function(){
@@ -111,21 +123,26 @@ function SocketConnection(socket){
        };
     });
 
+    socket.on("setPlayerDead", function(key){
+        _this.roomObj[key].dead = true;
+    });
+
     /**
      * Remove the room if empty
      */
     this.cleanUpRoom = function(){
-        dev.log(connectedRoomUsers);
         if(Object.keys(_this.roomObj).length === 0){
             dev.log('Deleting room');
+            this.snekController.stopGameLoop();
+            this.roomRunning = false;
             delete connectedRoomUsers[_this.room];
             delete roomProperties[_this.room];
         }
     };
 
     socket.on('startGame', function(){
-        _this.preScreen.stopPreGameLoop()
-        _this.snekController = new SnekController(_this);
+        _this.preScreen.stopPreGameLoop();
+        _this.snekController.init();
     });
 
     this.init();
@@ -168,6 +185,7 @@ function PreScreenController(parentController){
     this.setupGlobalRoom = function(){
         if( ! connectedRoomUsers[parentController.room]){
             dev.log('Room is new, creating...');
+            parentController.snekController.stopGameLoop();
             roomProperties[parentController.room] = {};
             connectedRoomUsers[parentController.room] = {};
         }
@@ -189,7 +207,8 @@ function PreScreenController(parentController){
             posx: null,
             posy: null,
             direction: null,
-            segments: 2
+            segments: 3,
+            dead: false
         };
     };
 
@@ -231,18 +250,23 @@ function SnekController(parentController){
 
     var _this = this;
 
+    this.gameLoop = null;
+
+    this.gameRunning = false;
+
     /**
      * SnekControlelr init
      */
     this.init = function(){
         this.startCountDown();
+        this.gameRunning = true;
     };
 
     /**
      * Start the countdown to start the game
      */
     this.startCountDown = function(){
-        var countDown = 1;
+        var countDown = 0;
 
         setInterval(function(){
             io.to(parentController.room).emit("getGameStartCountdown", countDown);
@@ -266,6 +290,8 @@ function SnekController(parentController){
         io.to(parentController.room).emit("gameStart");
 
         this.setUpPlayerStartPositions(playerCount);
+
+        this.updatePlayerMovement();
     };
 
     /**
@@ -277,24 +303,43 @@ function SnekController(parentController){
 
         var playerPositions = [];
 
-        var twoPlayerPositions = [
-            {
-                'x' : 50,
-                'y' : (parentController.roomProperties.containerDimensions.height / 2),
-                'direction' : 'R'
-            },
-            {
-                'x' : (parentController.roomProperties.containerDimensions.width - 50),
-                'y' : (parentController.roomProperties.containerDimensions.height / 2),
-                'direction' : 'L'
-            }
-        ];
+        var p1Pos = {
+            'x' : 50,
+            'y' : (parentController.roomProperties.containerDimensions.height / 2) - 5,
+            'direction' : 'R'
+        };
+
+        var p2Pos = {
+            'x' : (parentController.roomProperties.containerDimensions.width - 50),
+            'y' : (parentController.roomProperties.containerDimensions.height / 2) - 5,
+            'direction' : 'L'
+        };
+
+        var p3Pos = {
+            'x' : (parentController.roomProperties.containerDimensions.width / 2) - 5,
+            'y' : 50,
+            'direction' : 'D'
+        };
+
+        var p4Pos = {
+            'x' : (parentController.roomProperties.containerDimensions.width / 2) - 5,
+            'y' : (parentController.roomProperties.containerDimensions.height - 50),
+            'direction' : 'U'
+        };
 
         switch(playerCount){
-            case 2:{
-                playerPositions = twoPlayerPositions;
-                break;
-            }
+            case 2:
+                playerPositions = [p1Pos, p2Pos];
+            break;
+
+            case 3:
+                playerPositions = [p1Pos, p2Pos, p3Pos];
+            break;
+
+            case 4:
+                playerPositions = [p1Pos, p2Pos, p3Pos, p4Pos];
+            break;
+
         }
 
         var loopCounter = 0;
@@ -302,12 +347,76 @@ function SnekController(parentController){
             parentController.roomObj[key].posx = playerPositions[loopCounter].x;
             parentController.roomObj[key].posy = playerPositions[loopCounter].y;
             parentController.roomObj[key].direction = playerPositions[loopCounter].direction;
+
+            loopCounter++;
         });
 
         io.to(parentController.room).emit("setupStartPositions", parentController.roomObj);
     };
 
-    this.init();
+
+    this.updatePlayerMovement = function(){
+        if(_this.gameRunning && Object.keys(parentController.roomObj).length > 0) {
+            console.log("Update");
+            _this.recalculatePlayerPositions();
+
+            io.to(parentController.room).emit("setNewPositions", parentController.roomObj);
+
+            this.gameLoop = setTimeout(_this.updatePlayerMovement, 100);
+        }
+    };
+
+    this.recalculatePlayerPositions = function(){
+        Object.keys(parentController.roomObj).forEach(function(key, val) {
+
+            var currentPlayerPosition = {
+                'top' : parentController.roomObj[key].posy,
+                'left' : parentController.roomObj[key].posx
+            };
+
+            var newPositions = {};
+
+            switch(parentController.roomObj[key].direction){
+                case 'R':
+                    newPositions = {
+                        top: currentPlayerPosition.top,
+                        left: currentPlayerPosition.left + 10
+                    };
+                break;
+
+                case 'L':
+                    newPositions = {
+                        top: currentPlayerPosition.top,
+                        left: currentPlayerPosition.left - 10
+                    };
+                break;
+
+                case 'U':
+                    newPositions = {
+                        top: currentPlayerPosition.top - 10,
+                        left: currentPlayerPosition.left
+                    };
+                break;
+
+                case 'D':
+                    newPositions = {
+                        top: currentPlayerPosition.top + 10,
+                        left: currentPlayerPosition.left
+                    };
+                break;
+            }
+
+            parentController.roomObj[key].posx = newPositions.left;
+            parentController.roomObj[key].posy = newPositions.top;
+        });
+    };
+
+    this.stopGameLoop = function(){
+        this.gameRunning = false;
+        clearTimeout(_this.gameLoop);
+        clearTimeout(this.gameLoop);
+    };
+
 }
 
 /**
