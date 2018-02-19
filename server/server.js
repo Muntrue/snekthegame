@@ -9,7 +9,7 @@ server.listen(3000);
 var connectedRoomUsers = {};
 var roomProperties = {};
 
-var dev = new Dev(false);
+var dev = new Dev(true);
 dev.playerReady = false;
 
 io.on('connection', function(socket){
@@ -105,6 +105,13 @@ function SocketConnection(socket){
     socket.on('disconnect', function(){
         _this.disconnectClient();
     });
+
+	/**
+	 * Disconnect socket
+	 */
+	socket.on('forceDisconnect', function(){
+		_this.socket.disconnect();
+	});
 
     /**
      * Update player direction
@@ -262,6 +269,10 @@ function SnekController(parentController){
 
     this.gameRunning = false;
 
+    this.tickRate = 100;
+
+    this.foodCollected = 0;
+
     /**
      * SnekControlelr init
      */
@@ -276,9 +287,17 @@ function SnekController(parentController){
     this.playerCollectedFood = function(){
         var socketId = parentController.socket.id;
         parentController.roomObj[socketId].segments = parentController.roomObj[socketId].segments + 1;
-        parentController.roomObj[socketId].score = parentController.roomObj[socketId].segments + 1;
+        parentController.roomObj[socketId].score = parentController.roomObj[socketId].score + 10;
         this.spawnNewSegmentForPlayer(socketId);
         this.setNewFood(socketId);
+
+        this.foodCollected++;
+
+        if((this.foodCollected % 3) === 0){
+            if(this.tickRate > 0){
+	            this.tickRate = this.tickRate - 10;
+            }
+        }
     };
 
     /**
@@ -286,7 +305,7 @@ function SnekController(parentController){
      */
     this.spawnNewSegmentForPlayer = function(socketId){
         io.to(parentController.room).emit("spawnNewSegmentForPlayer", socketId, parentController.roomObj);
-    }
+    };
 
     /**
      * Start the countdown to start the game
@@ -388,15 +407,51 @@ function SnekController(parentController){
     };
 
 
-    this.updatePlayerMovement = function(){
+	/**
+     * Update the player movement
+	 */
+	this.updatePlayerMovement = function(){
         if(_this.gameRunning && Object.keys(parentController.roomObj).length > 0) {
-            console.log("Update");
             _this.recalculatePlayerPositions();
 
             io.to(parentController.room).emit("setNewPositions", parentController.roomObj);
 
-            this.gameLoop = setTimeout(_this.updatePlayerMovement, 100);
+	        _this.checkAliveStatus();
+            _this.gameLoop = setTimeout(_this.updatePlayerMovement, _this.tickRate);
         }
+    };
+
+	/**
+     * Check player alive status
+	 */
+	this.checkAliveStatus = function(){
+        var deadPeople = [];
+	    Object.keys(parentController.roomObj).forEach(function(key, val) {
+	       if(parentController.roomObj[key].dead){
+	           deadPeople.push("");
+           }
+	    });
+
+	    if((Object.keys(parentController.roomObj).length - 1) === deadPeople.length){
+		    _this.stopGameLoop();
+		    _this.announceWinner();
+        }
+    };
+
+	/**
+     * Announce the winner
+	 */
+	this.announceWinner = function(){
+
+        var winnerId = null;
+	    Object.keys(parentController.roomObj).forEach(function(key, val) {
+            if( ! parentController.roomObj[key].dead){
+	            winnerId = parentController.roomObj[key].id;
+            }
+	    });
+
+	    dev.log("Winner is "+winnerId);
+	    io.to(parentController.room).emit("announceWinner", winnerId);
     };
 
     this.recalculatePlayerPositions = function(){

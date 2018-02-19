@@ -56,6 +56,11 @@ function Client(room, playerName, color, mainController)
             mainController.spawnNewSegmentForPlayer(key, data);
         });
 
+		this.socket.on('announceWinner', function(winnerId){
+			console.log("Winner is "+ winnerId);
+			mainController.announceWinner(winnerId);
+		});
+
 	};
 
 	this.playerCollectedFood = function(){
@@ -84,6 +89,10 @@ function Client(room, playerName, color, mainController)
 
 	this.setPlayerDead = function(key){
         this.socket.emit('setPlayerDead', key);
+	};
+
+	this.disconnect = function(){
+		this.socket.emit('forceDisconnect');
 	};
 
 	this.boot();

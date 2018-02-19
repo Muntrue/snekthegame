@@ -17,13 +17,15 @@ $(document).ready(function(){
         mainController.playerColor = e.color.toHex();
     });
 
-
 	$('[data-toggle="tooltip"]').tooltip();
 
 	var randomId = mainController.generateRandomId();
 
-	//$('.txt-room-id').val(randomId);
-    $('.txt-room-id').val('devroom');
+	if(window.location.hash) {
+		$('.txt-room-id').val(window.location.hash.replace('#',''));
+	} else {
+		$('.txt-room-id').val(randomId);
+	}
 
 	$('.txt-room-id').on('focus', function(){
 		if($(this).val() === randomId){
@@ -69,7 +71,7 @@ function MainController(){
     this.connectToRoom = function(){
         this.roomId = $('.txt-room-id').val();
         this.client = new Client(this.roomId, $('.txt-plyr-name').val(), this.playerColor, this);
-
+	    parent.location.hash = this.roomId;
         $('.roomContainer').html('<h2>You are connected to room<br /><span class="badge badge-secondary">'+ this.roomId +'</span></h2>').css('text-align', 'center');
     };
 
@@ -126,6 +128,8 @@ function MainController(){
         $('.btn-ready').removeClass('d-none').addClass('d-inline-block');
         $('.plyr-count ul').html('');
 
+	    $('.popOut ul').html('');
+
         var playerNum = 1;
 
         var readyPlayers = [];
@@ -150,6 +154,7 @@ function MainController(){
             }
 
             $('.plyr-count ul').append(newLi);
+	        $('.popOut ul').append("<li id='playerPill_"+data[key].id+"'><span class=\"badge badge-secondary player-name\" style='background-color:#"+data[key].color+" !important;'>"+data[key].name+"</span> <span class=\"badge badge-dark player-score\" data-score='0'>"+data[key].score+"</span><div class=\"clearfix\"></div></li>");
 
             playerNum++;
         });
@@ -169,7 +174,7 @@ function MainController(){
             this.client.startGame();
             $('.gameCountdown').removeClass('d-none');
         }
-    }
+    };
 
     /**
      * Update countdown clock
@@ -179,6 +184,7 @@ function MainController(){
     this.updateCountdown = function(data){
         $('.gameCountdown').removeClass('d-none');
         $('.gameCountdown span').html(data);
+        $('.popOut').css('left', 'calc(50% + 350px)');
     };
 
     /**
@@ -198,12 +204,51 @@ function MainController(){
         this.client.setPlayerReady();
     };
 
-    this.setupStartPositions = function(data){
+	/**
+	 * Set up the start positions
+	 *
+	 * @param data
+	 */
+	this.setupStartPositions = function(data){
         this.snekController.setStartPositions(data);
     };
 
+	/**
+	 * Update player positions
+	 *
+	 * @param data
+	 */
     this.updatePositions = function(data){
+
     	this.snekController.updatePositions(data);
+    	this.updatePlayerPills(data);
+	};
+
+	/**
+	 * Update player pills
+	 *
+	 * @param data
+	 */
+	this.updatePlayerPills = function(data){
+
+		Object.keys(data).forEach(function(key, val)
+		{
+			$('#playerPill_'+data[key].id+' .player_score').html(data[key].score);
+			if(data[key].dead && ! $('#playerPill_'+data[key].id+' .player-name').hasClass('strike-off')){
+				$('#playerPill_'+data[key].id+' .player-name').addClass('strike-off');
+			}
+		});
+    };
+
+	/**
+	 * Sort list
+	 *
+	 * @param a
+	 * @param b
+	 * @return {number}
+	 */
+	this.sortByScore = function (a, b) {
+		return ($(b).data('position')) < ($(a).data('position')) ? 1 : -1;
 	};
 
     /**
@@ -230,15 +275,28 @@ function MainController(){
      * @param position
      */
 	this.getNewFood = function(position){
-		console.log(position);
 		this.snekController.getNewFood(position);
 	};
 
+	/**
+	 * Player collected a food item
+	 */
 	this.playerCollectedFood = function(){
 		this.client.playerCollectedFood();
 	};
 
+	/**
+	 * Spawn a new segment for player
+	 *
+	 * @param key
+	 * @param data
+	 */
 	this.spawnNewSegmentForPlayer = function(key, data){
 		this.snekController.spawnNewSegmentForPlayer(key, data);
 	};
+
+	this.announceWinner = function(winnerId){
+		this.client.disconnect();
+		$('.snekContainer').append('<div style="width:100%;height:100%;position:absolute;left:0px;top:0px;background-color:rgba(0,0,0,0.5);color:#FFF;text-align:center;"><div style="padding:20px;text-align:center;"></div><h1>GAME OVER</h1> The winner is '+$('#playerPill_'+winnerId).find('.player-name').html()+"<br /><br /> <a href='"+document.location.href+"#"+_this.roomId+"'><button type=\"button\" class=\"btn btn-primary\">Play Again</button></a></div></div>");
+	}
 }
