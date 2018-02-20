@@ -297,6 +297,6 @@ function MainController(){
 
 	this.announceWinner = function(winnerId){
 		this.client.disconnect();
-		$('.snekContainer').append('<div style="width:100%;height:100%;position:absolute;left:0px;top:0px;background-color:rgba(0,0,0,0.5);color:#FFF;text-align:center;"><div style="padding:20px;text-align:center;"></div><h1>GAME OVER</h1> The winner is '+$('#playerPill_'+winnerId).find('.player-name').html()+"<br /><br /> <a href='"+document.location.href+"#"+_this.roomId+"'><button type=\"button\" class=\"btn btn-primary\">Play Again</button></a></div></div>");
+		$('.snekContainer').append('<div style="width:100%;height:100%;position:absolute;left:0px;top:0px;background-color:rgba(0,0,0,0.5);color:#FFF;text-align:center;"><div style="padding:20px;text-align:center;"></div><h1>GAME OVER</h1> The winner is '+$('#playerPill_'+winnerId).find('.player-name').html()+"<br /><br /> <a href='/#"+_this.roomId+"'><button type=\"button\" class=\"btn btn-primary\">Play Again</button></a></div></div>");
 	}
 }
