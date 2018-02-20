@@ -79,7 +79,7 @@ function MainController(){
 	    localStorage.setItem('user-name', $('.txt-plyr-name').val());
 
         this.roomId = $('.txt-room-id').val();
-        
+
         this.client = new Client(this.roomId, $('.txt-plyr-name').val(), this.playerColor, this);
 
 	    parent.location.hash = this.roomId;
