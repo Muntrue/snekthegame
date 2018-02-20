@@ -41,7 +41,12 @@ $(document).ready(function(){
 
 	var playerName = mainController.generateRandomName();
 
+	if(localStorage.getItem("user-name")){
+		playerName = localStorage.getItem("user-name");
+	}
+
 	$('.txt-plyr-name').val(playerName);
+
     $('.txt-plyr-name').on('focus', function(){
         if($(this).val() === playerName){
             $(this).val('');
@@ -64,14 +69,21 @@ function MainController(){
     this.snekController = null;
     this.playerColor = null;
     this.allPlayersReady = false;
+    this.gameRunning = false;
 
     /**
      * Connect to a room
      */
     this.connectToRoom = function(){
+
+	    localStorage.setItem('user-name', $('.txt-plyr-name').val());
+
         this.roomId = $('.txt-room-id').val();
+        
         this.client = new Client(this.roomId, $('.txt-plyr-name').val(), this.playerColor, this);
+
 	    parent.location.hash = this.roomId;
+
         $('.roomContainer').html('<h2>You are connected to room<br /><span class="badge badge-secondary">'+ this.roomId +'</span></h2>').css('text-align', 'center');
     };
 
@@ -162,7 +174,9 @@ function MainController(){
         if(readyPlayers.length === Object.keys(data).length && Object.keys(data).length > 1)
         {
             this.allPlayersReady = true;
-            $('.btn-start').attr('data-original-title', 'Start the game!').removeClass('disabled');
+            if( ! _this.gameRunning){
+	            $('.btn-start').attr('data-original-title', 'Start the game!').removeClass('disabled');
+            }
         }
     };
 
@@ -172,6 +186,8 @@ function MainController(){
     this.startGame = function(){
         if(this.allPlayersReady){
             this.client.startGame();
+	        this.gameRunning = true;
+	        $('.btn-start, .tooltip').remove();
             $('.gameCountdown').removeClass('d-none');
         }
     };
