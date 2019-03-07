@@ -1,3 +1,8 @@
+## DEMO
+
+http://snekthegame.ga/
+
+
 ### Requirements
 * Node
 * NPM
